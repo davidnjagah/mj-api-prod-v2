@@ -1,6 +1,6 @@
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import HttpError from '../models/errorModel';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 interface Request {

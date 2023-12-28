@@ -85,12 +85,12 @@ export class Command {
     }
     throw new Error(`Failed to get application_commands for command ${name}`);
   }
-  async imaginePayload(prompt: string, nonce?: string) {
+  async imaginePayload(prompt: string, nonce: string) {
     const data = await this.commandData("imagine", [
       {
         type: 3,
         name: "prompt",
-        value: prompt,
+        value: prompt + " " + nonce,
       },
     ]);
     return this.data2Paylod(data, nonce);

@@ -1,6 +1,5 @@
 import {
   DefaultMJConfig,
-  DiscordImage,
   LoadingHandler,
   MJConfig,
   MJConfigParam,
@@ -12,7 +11,6 @@ import {
   custom2Type,
   nextNonce,
   random,
-  base64ToBlob,
 } from "./utils";
 import { WsMessage } from "./discord.ws";
 export class Midjourney extends MidjourneyMessage {

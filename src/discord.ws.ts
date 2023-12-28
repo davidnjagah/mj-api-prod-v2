@@ -6,7 +6,6 @@ import {
   MJEmit,
   MJInfo,
   MJSettings,
-  MJOptions,
   OnModal,
   MJShorten,
   MJDescribe,
@@ -22,7 +21,8 @@ import {
   uriToHash,
 } from "./utils";
 import { VerifyHuman } from "./verify.human";
-import WebSocket from "isomorphic-ws";
+// @ts-ignore
+import WebSocket = require('isomorphic-ws');
 export class WsMessage {
   ws: WebSocket;
   private closed = false;
@@ -134,7 +134,7 @@ export class WsMessage {
   }
   private async messageCreate(message: any) {
     //this.log("This is the message from messageCreate: ", message);
-    const { embeds, id, nonce, components, attachments, content } = message;
+    const { embeds, id, nonce, components, attachments } = message;
     if (nonce) {
       // this.log("waiting start image or info or error");
       this.updateMjEventIdByNonce(id, nonce);
@@ -294,10 +294,15 @@ export class WsMessage {
   private async onMessageDelete(message: any) {
     const { channel_id, id } = message;
     if (channel_id !== this.config.ChannelId) return;
-    for (const [key, value] of this.waitMjEvents.entries()) {
+    const waitMjIter = this.waitMjEvents.entries();
+    let nextEntry = waitMjIter.next();
+    while (!nextEntry.done) {
+    const [key, value] = nextEntry.value;
+      console.log(`Key: ${key}, Value: ${value}`);
       if (value.id === id) {
         this.waitMjEvents.set(key, { ...value, del: true });
       }
+      nextEntry = waitMjIter.next();
     }
   }
 
@@ -459,6 +464,7 @@ export class WsMessage {
     // delay 300ms for discord message delete
     await this.timeout(300);
     const event = this.getEventByContent(MJmsg.content);
+    console.log("Event:",event);
     if (!event) {
       this.log("FilterMessages not found", MJmsg, this.waitMjEvents);
       return;
@@ -468,39 +474,59 @@ export class WsMessage {
     };
     this.emitImage(event.nonce, eventMsg);
   }
+
   private getEventByContent(content: string) {
     const prompt = content2prompt(content);
     //fist del message
-    for (const [key, value] of this.waitMjEvents.entries()) {
+    const waitMjIter = this.waitMjEvents.entries();
+    let nextEntry1 = waitMjIter.next();
+    while (!nextEntry1.done) {
+    const [key, value] = nextEntry1.value;
+      console.log(`Key: ${key}, Value: ${value}`);
       if (
         value.del === true &&
         prompt === content2prompt(value.prompt as string)
       ) {
         return value;
       }
+      nextEntry1 = waitMjIter.next();
     }
 
-    for (const [key, value] of this.waitMjEvents.entries()) {
+    let nextEntry2 = waitMjIter.next();
+    while (!nextEntry2.done) {
+      const [key, value] = nextEntry2.value;
       if (prompt === content2prompt(value.prompt as string)) {
         return value;
       }
+      nextEntry2 = waitMjIter.next();
     }
   }
 
   private getEventById(id: string) {
-    for (const [key, value] of this.waitMjEvents.entries()) {
+    const waitMjIter = this.waitMjEvents.entries();
+    let nextEntry = waitMjIter.next();
+    while (!nextEntry.done) {
+    const [key, value] = nextEntry.value;
+      console.log(`Key: ${key}, Value: ${value}`);
       if (value.id === id) {
         return value;
       }
+      nextEntry = waitMjIter.next();
     }
   }
   private getEventByNonce(nonce: string) {
-    for (const [key, value] of this.waitMjEvents.entries()) {
+    const waitMjIter = this.waitMjEvents.entries();
+    let nextEntry = waitMjIter.next();
+    while (!nextEntry.done) {
+    const [key, value] = nextEntry.value;
+      console.log(`Key: ${key}, Value: ${value}`);
       if (value.nonce === nonce) {
         return value;
       }
-    }
+    nextEntry = waitMjIter.next();
   }
+  }
+
   private updateMjEventIdByNonce(id: string, nonce: string) {
     if (nonce === "" || id === "") return;
     let event = this.waitMjEvents.get(nonce);
@@ -654,7 +680,7 @@ export class WsMessage {
       console.log("This is waitMjEvents", this.waitMjEvents);
       this.waitMjEvents.set(nonce, {
         nonce,
-        prompt,
+        prompt: prompt + " " + nonce,
         onmodal: async (oldnonce, id) => {
           if (onmodal === undefined) {
             // reject(new Error("onmodal is not defined"))
@@ -697,64 +723,7 @@ export class WsMessage {
     });
   }
 
-  async waitSaveIdMessage({
-    nonce,
-    prompt,
-    imageUri,
-    saveidres,
-    onmodal,
-    messageId,
-    loading,
-  }: {
-    nonce: string;
-    imageUri?: string;
-    saveidres?: string;
-    prompt?: string;
-    messageId?: string;
-    onmodal?: OnModal;
-    loading?: LoadingHandler;
-  }) {
-    if (messageId) this.skipMessageId.push(messageId);
-    return new Promise<MJMessage | null>((resolve, reject) => {
-      const handleSaveIdMessage = ({ message, error }: MJEmit) => {
-        console.log("This is the message ", message);
-        if (error) {
-          this.removeWaitMjEvent(nonce);
-          reject(error);
-          return;
-        }
-        if (message && message.progress === "done") {
-          this.removeWaitMjEvent(nonce);
-          messageId && this.removeSkipMessageId(messageId);
-          resolve(message);
-          return;
-        }
-        message && loading && loading(message.uri, message.content || "");
-      };
-      if (saveidres ) {
-        this.waitMjEvents.set(nonce, {
-          nonce,
-          saveidres,
-          onmodal: async (oldnonce, id) => {
-            if (onmodal === undefined) {
-              // reject(new Error("onmodal is not defined"))
-              return "";
-            }
-            var nonce = await onmodal(oldnonce, id);
-            if (nonce === "") {
-              // reject(new Error("onmodal return empty nonce"))
-              return "";
-            }
-            this.removeWaitMjEvent(oldnonce);
-            this.waitMjEvents.set(nonce, { nonce });
-            this.onceImage(nonce, handleSaveIdMessage);
-            return nonce;
-          },
-        });
-        }
-      this.onceImage(nonce, handleSaveIdMessage);
-    });
-  }
+  
   async waitDescribe(nonce: string) {
     return new Promise<MJDescribe | null>((resolve) => {
       this.onceMJ(nonce, (message) => {

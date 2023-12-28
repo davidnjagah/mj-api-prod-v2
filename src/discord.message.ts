@@ -6,7 +6,7 @@ import {
   MJConfigParam,
 } from "./interfaces";
 import { formatOptions, sleep } from "./utils";
-import async from "async";
+import * as async from "async";
 
 export class MidjourneyMessage {
   public config: MJConfig;

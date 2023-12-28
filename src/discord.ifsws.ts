@@ -13,14 +13,13 @@ import {
 } from "./interfaces";
 import {
   content2progress,
-  content2prompt,
   formatInfo,
   formatOptions,
   formatPrompts,
-  nextNonce,
   uriToHash,
 } from "./utils";
-import WebSocket from "isomorphic-ws";
+// @ts-ignore
+import WebSocket = require('isomorphic-ws');
 export class IFSWsMessage {
   ws: WebSocket;
   private closed = false;
@@ -132,7 +131,7 @@ export class IFSWsMessage {
   }
   private async messageCreate(message: any) {
     //this.log("This is the message from messageCreate: ", message);
-    const { embeds, id, nonce, components, attachments, content } = message;
+    const {id, nonce, components, attachments, content } = message;
     if (nonce) {
       // this.log("waiting start image or info or error");
       this.updateMjEventIdByNonce(id, nonce);
@@ -266,10 +265,15 @@ export class IFSWsMessage {
   private async onMessageDelete(message: any) {
     const { channel_id, id } = message;
     if (channel_id !== this.config.ChannelId) return;
-    for (const [key, value] of this.waitIFSEvents.entries()) {
+    const waitIFSIter = this.waitIFSEvents.entries();
+    let nextEntry = waitIFSIter.next();
+    while (!nextEntry.done) {
+    const [key, value] = nextEntry.value;
+      console.log(`Key: ${key}, Value: ${value}`);      
       if (value.id === id) {
         this.waitIFSEvents.set(key, { ...value, del: true });
       }
+      nextEntry = waitIFSIter.next();
     }
   }
 
@@ -292,16 +296,9 @@ export class IFSWsMessage {
       case "MESSAGE_CREATE":
         this.emitSystem("messageCreate", message);
         if (message.content) {
-        this.log("This is the message MessageCreate", message);
           this.waitIFSEvents.forEach((value, index) =>{
           if ( message.content === `idname ${value.rid} created`) {
             console.log("Has been found", value.rid);
-            //this.done(message);
-            //this.waitSaveIdMessage({nonce: value.nonce, rid: value.rid});
-            // message.content?.includes("idname") && 
-            // message.content?.includes(value.rid) && 
-            // message.content?.includes("created") || 
-            // message.content?.includes("updated")
             const event = this.getEventByNonce(value.nonce);
             if (!event) {
               return;
@@ -316,7 +313,6 @@ export class IFSWsMessage {
             const eventMsg: IFSEmit = {
               message: IFSmsg,
             };
-            console.log("This is the IFSmsg", IFSmsg);
             this.emitImage(event.nonce, eventMsg);
             this.removeEvent(event.nonce);
             this.removeWaitIFSEvent(value.nonce)
@@ -340,28 +336,6 @@ export class IFSWsMessage {
         }
     }
   }
-  //continue click appeal or Acknowledged
-  private async continue(message: any) {
-    const { components, id, flags, nonce } = message;
-    const appeal = components[0]?.components[0];
-    this.log("appeal", appeal);
-    if (appeal) {
-      var newnonce = nextNonce();
-      const httpStatus = await this.MJApi.CustomApi({
-        msgId: id,
-        customId: appeal.custom_id,
-        flags,
-        nonce: newnonce,
-      });
-      this.log("appeal.httpStatus", httpStatus);
-      if (httpStatus == 204) {
-        //todo
-        this.on(newnonce, (data) => {
-          this.emit(nonce, data);
-        });
-      }
-    }
-  }
 
   private EventError(id: string, error: Error) {
     const event = this.getEventById(id);
@@ -378,7 +352,7 @@ export class IFSWsMessage {
     const { content, id, attachments, components, flags } = message;
 
     if(attachments?.length > 0){
-    const { url, proxy_url, width, height } = attachments[0];
+    const { url, proxy_url } = attachments[0];
     let uri = url;
     if (this.config.ImageProxy !== "") {
       uri = uri.replace("https://cdn.discordapp.com/", this.config.ImageProxy);
@@ -446,11 +420,7 @@ export class IFSWsMessage {
     //delay 300ms for discord message delete
     //await this.timeout(300);
     this.waitIFSEvents.forEach((value, index) => {
-      console.log(`[SaveID: '${value.rid}']`);
-    if (
-      IFSmsg.content && 
-      IFSmsg.content.includes(`[SaveID: '${value.rid}']`)
-      ) {
+    if (IFSmsg.content && IFSmsg.content.includes(`[SaveID: '${value.rid}']`)) {
     const event = this.getEventByNonce(value.nonce);
     if (!event) {
       this.log("FilterMessages not found", IFSmsg, this.waitIFSEvents);
@@ -463,37 +433,29 @@ export class IFSWsMessage {
   }
   });
   }
-  private getEventByContent(content: string) {
-    const prompt = content2prompt(content);
-    //fist del message
-    for (const [key, value] of this.waitIFSEvents.entries()) {
-      if (
-        value.del === true &&
-        prompt === content2prompt(value.prompt as string)
-      ) {
-        return value;
-      }
-    }
-
-    for (const [key, value] of this.waitIFSEvents.entries()) {
-      if (prompt === content2prompt(value.prompt as string)) {
-        return value;
-      }
-    }
-  }
 
   private getEventById(id: string) {
-    for (const [key, value] of this.waitIFSEvents.entries()) {
+    const waitIFSIter = this.waitIFSEvents.entries();
+    let nextEntry = waitIFSIter.next();
+    while (!nextEntry.done) {
+    const [key, value] = nextEntry.value;
+      console.log(`Key: ${key}, Value: ${value}`);
       if (value.id === id) {
         return value;
       }
+      nextEntry = waitIFSIter.next();
     }
   }
   private getEventByNonce(nonce: string) {
-    for (const [key, value] of this.waitIFSEvents.entries()) {
+    const waitIFSIter = this.waitIFSEvents.entries();
+    let nextEntry = waitIFSIter.next();
+    while (!nextEntry.done) {
+    const [key, value] = nextEntry.value;
+      console.log(`Key: ${key}, Value: ${value}`);
       if (value.nonce === nonce) {
         return value;
       }
+      nextEntry = waitIFSIter.next();
     }
   }
   private updateMjEventIdByNonce(id: string, nonce: string) {
@@ -591,12 +553,6 @@ export class IFSWsMessage {
     //FIXME: addWaitMjEvent
     this.waitIFSEvents.set(nonce, { nonce, rid: "" });
     this.event.push({ event: nonce, callback: once });
-  }
-  private removeSkipMessageId(messageId: string) {
-    const index = this.skipMessageId.findIndex((id) => id !== messageId);
-    if (index !== -1) {
-      this.skipMessageId.splice(index, 1);
-    }
   }
   private removeWaitIFSEvent(nonce: string) {
     this.waitIFSEvents.delete(nonce);

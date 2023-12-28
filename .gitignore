@@ -130,7 +130,3 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-
-# Directory for build generated files
-libs
-.idea

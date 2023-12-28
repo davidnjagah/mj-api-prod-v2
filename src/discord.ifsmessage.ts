@@ -1,13 +1,12 @@
 import {
   DefaultMJConfig,
   LoadingHandler,
-  MJMessage,
   MJConfig,
   MJConfigParam,
   IFSMessage,
 } from "./interfaces";
 import { formatOptions, sleep } from "./utils";
-import async from "async";
+import * as async from "async";
 
 export class IFSDiscordMessage {
   public config: MJConfig;
@@ -95,7 +94,7 @@ export class IFSDiscordMessage {
         }
         //finished
         const content = item.content.split("**")[1];
-        const { proxy_url, width, height } = item.attachments[0];
+        const { proxy_url } = item.attachments[0];
         const msg: IFSMessage = {
           content,
           rid,

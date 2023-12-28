@@ -8,19 +8,6 @@ import { IFSBot, Midjourney, IFS } from "../src";
 
 interface IncomingRequest {
  rid: string,
- templateUri: string,
-}
-
-function createClient() {
-  // Configuration for the client
-  const client = new Midjourney({
-      ServerId: <string>process.env.SERVER_ID,
-      ChannelId: <string>process.env.CHANNEL_ID,
-      SalaiToken: <string>process.env.SALAI_TOKEN,
-      Debug: true,
-      Ws: true,
-    });
-  return client;
 }
 
 function createIFSClient() {
@@ -40,30 +27,23 @@ async function timeout(ms: number) {
 }
 
 
-export const handleImageGen = async (
+export const handleDeleteId = async (
   req: Request<{}, {}, IncomingRequest>, 
   res: Response,
   next: NextFunction
 ) => {
 
-    const { rid, templateUri } = req.body;
+    const { rid } = req.body;
 
     const clientIFS = createIFSClient();
      
     try {
-   
-        //await timeout(30000);
-        console.log("templateUri:", templateUri);
-        console.log("rid:", rid)
-        await clientIFS.SwapId( templateUri, rid,  (uri) => {
-          console.log("loading123---", uri);
-        })
-        .then(async (value)=>{
-          console.log("This is SwapId response:",value);
-          res.json(value?.proxy_url)
-        })
-        .finally(()=>{
+        
+        await clientIFS.delId(rid)
+        .then(async ()=>{
           clientIFS.Close();
+          await timeout(1000);
+          res.json({status: 200})
         })
 
      } catch (error) {

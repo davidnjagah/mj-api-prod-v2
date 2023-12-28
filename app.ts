@@ -1,20 +1,23 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import * as express from 'express';
+import * as cors from 'cors';
 import authMiddleware from './middleware/authMiddleware';
 import { handleImageGen } from './controllers/processImageController';
 import { paystackWebhook } from './controllers/paystack-webhook';
 import { check } from './controllers/check';
+import { uploadImage } from './controllers/uploadController';
+import { handleDeleteId } from './controllers/deleteIdController';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware';
 
-const app: Express = express();
+const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
-
 app.use('/api/fetchimages', authMiddleware, handleImageGen);
+app.use('/api/uploadimage', uploadImage);
+app.use('/api/deleteid', handleDeleteId);
 app.use('/api/webhook', paystackWebhook);
 app.use('/api/checkroute', check)
 

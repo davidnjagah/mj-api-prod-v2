@@ -12,7 +12,7 @@ import {
 
 import { nextNonce, sleep } from "./utils";
 import { Command } from "./command";
-import async from "async";
+import * as async from "async";
 
 export class MidjourneyApi extends Command {
   UpId = Date.now() % 10; // upload id
@@ -136,6 +136,7 @@ export class MidjourneyApi extends Command {
     nonce?: string;
     flags: number;
   }) {
+    console.log("variables in upscale:", msgId, index, hash, flags, nonce);
     return this.CustomApi({
       msgId,
       customId: `MJ::JOB::upsample::${index}::${hash}`,
@@ -190,6 +191,7 @@ export class MidjourneyApi extends Command {
         custom_id: customId,
       },
     };
+    console.log("This is the payload:", payload);
     return this.safeIteractions(payload);
   }
 
@@ -396,7 +398,7 @@ export class MidjourneyApi extends Command {
   private async attachments(
     ...files: UploadParam[]
   ): Promise<{ attachments: UploadSlot[] }> {
-    const { SalaiToken, DiscordBaseUrl, ChannelId, fetch } = this.config;
+    const { SalaiToken, DiscordBaseUrl, ChannelId } = this.config;
     const headers = {
       Authorization: SalaiToken,
       "content-type": "application/json",

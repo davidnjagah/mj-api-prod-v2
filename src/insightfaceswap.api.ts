@@ -12,7 +12,7 @@ import {
 
 import { nextNonce, sleep } from "./utils";
 import { Command } from "./commandsIFS";
-import async from "async";
+import * as async from "async";
 
 export class InsightFaceSwapApi extends Command {
   UpId = Date.now() % 10; // upload id
@@ -367,7 +367,7 @@ export class InsightFaceSwapApi extends Command {
   private async attachments(
     ...files: UploadParam[]
   ): Promise<{ attachments: UploadSlot[] }> {
-    const { SalaiToken, DiscordBaseUrl, ChannelId, fetch } = this.config;
+    const { SalaiToken, DiscordBaseUrl, ChannelId } = this.config;
     const headers = {
       Authorization: SalaiToken,
       "content-type": "application/json",

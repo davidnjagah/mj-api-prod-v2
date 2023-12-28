@@ -265,4 +265,18 @@ export class Command {
     console.log("This is the payload ", JSON.stringify(payload))
     return payload;
   }
+
+  protected data2PaylodSwapId(data: any, nonce?: string) {
+    const payload = {
+      type: 3,
+      application_id: data.application_command.application_id,
+      guild_id: this.config.ServerId,
+      channel_id: this.config.ChannelId,
+      session_id: this.config.SessionId,
+      nonce,
+      data,
+    };
+    console.log("This is the payload ", JSON.stringify(payload))
+    return payload;
+  }
 }

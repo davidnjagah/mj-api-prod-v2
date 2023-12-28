@@ -69,14 +69,17 @@ var handleDeleteId = function (req, res, next) { return __awaiter(void 0, void 0
                 clientIFS = createIFSClient();
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, timeout(500)];
+            case 2:
+                _a.sent();
                 return [4 /*yield*/, clientIFS.delId(rid)
                         .then(function () { return __awaiter(void 0, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     clientIFS.Close();
-                                    return [4 /*yield*/, timeout(1000)];
+                                    return [4 /*yield*/, timeout(500)];
                                 case 1:
                                     _a.sent();
                                     res.json({ status: 200 });
@@ -84,14 +87,14 @@ var handleDeleteId = function (req, res, next) { return __awaiter(void 0, void 0
                             }
                         });
                     }); })];
-            case 2:
-                _a.sent();
-                return [3 /*break*/, 4];
             case 3:
+                _a.sent();
+                return [3 /*break*/, 5];
+            case 4:
                 error_1 = _a.sent();
                 console.error("An error occurred:", error_1);
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

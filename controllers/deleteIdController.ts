@@ -38,11 +38,11 @@ export const handleDeleteId = async (
     const clientIFS = createIFSClient();
      
     try {
-        
+        await timeout(500);
         await clientIFS.delId(rid)
         .then(async ()=>{
           clientIFS.Close();
-          await timeout(1000);
+          await timeout(500);
           res.json({status: 200})
         })
 

@@ -12,7 +12,8 @@
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "example:imagine": "tsx ./examples/imagine-ws.ts",
-    "dev": "nodemon app.ts"
+    "dev": "nodemon app.ts",
+    "postinstall": "prisma generate"
   },
   "files": [
     "libs/*",

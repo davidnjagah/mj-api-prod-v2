@@ -37,27 +37,111 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.paystackWebhook = void 0;
-var axios_1 = require("axios");
+var crypto_1 = require("crypto");
 // Handle paystack payment confirmation
 // POST : api/webhook
 // PROTECTED //Whitelisting.
 var dotenv = require("dotenv");
 dotenv.config();
+var prismadb_1 = require("../lib/prismadb");
+// Function to add one month
+function addOneMonth(date) {
+    // Get the current day (of the month)
+    var currentDay = date.getDate();
+    // Add one month
+    date.setMonth(date.getMonth() + 1);
+    // Check if the day has changed (month overflow case)
+    // If so, set the date to the last day of the previous month
+    if (date.getDate() !== currentDay) {
+        date.setDate(0);
+    }
+}
 var paystackWebhook = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var PLATFORM_URL, event, response;
+    var PLATFORM_URL, secret, hash, event_1, date, amount, paystackSubscription;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 PLATFORM_URL = process.env.PLATFORM_URL;
-                console.log("This is the request", req);
-                event = req.body;
-                return [4 /*yield*/, axios_1.default.post(PLATFORM_URL + "/api/webhook", event)];
+                secret = process.env.PAYSTACK_SECRET_KEY;
+                hash = (0, crypto_1.createHmac)('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+                if (!(hash == req.headers['x-paystack-signature'])) return [3 /*break*/, 12];
+                event_1 = req.body;
+                console.log("This is the req.body", event_1);
+                date = new Date(event_1.data.paid_at);
+                amount = event_1.data.amount.toString();
+                console.log(amount);
+                addOneMonth(date);
+                console.log("Next Pay:", date);
+                return [4 /*yield*/, prismadb_1.default.paystackSubscription.findUnique({
+                        where: {
+                            userEmail: event_1.data.customer.email
+                        }
+                    })];
             case 1:
-                response = _a.sent();
+                paystackSubscription = _a.sent();
+                if (!(event_1.event === "charge.success")) return [3 /*break*/, 6];
+                if (!(paystackSubscription && paystackSubscription.paystackCustomerId)) return [3 /*break*/, 3];
+                return [4 /*yield*/, prismadb_1.default.paystackSubscription.update({
+                        where: {
+                            userEmail: event_1.data.customer.email,
+                        },
+                        data: {
+                            paystackAmountPaid: amount,
+                            paystackCurrentPeriodEnd: date,
+                        },
+                    })];
+            case 2:
+                _a.sent();
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, prismadb_1.default.paystackSubscription.create({
+                    data: {
+                        userEmail: event_1.data.customer.email,
+                        paystackCustomerId: event_1.data.customer.customer_code,
+                        paystackAmountPaid: amount,
+                        paystackCurrentPeriodEnd: date,
+                    },
+                })];
+            case 4:
+                _a.sent();
+                _a.label = 5;
+            case 5:
+                ;
+                _a.label = 6;
+            case 6:
+                ;
+                if (!(event_1.event === "subscription.create")) return [3 /*break*/, 11];
+                if (!(paystackSubscription && paystackSubscription.paystackCustomerId)) return [3 /*break*/, 8];
+                return [4 /*yield*/, prismadb_1.default.paystackSubscription.update({
+                        where: {
+                            userEmail: event_1.data.customer.email,
+                        },
+                        data: {
+                            paystackAmountPaid: amount,
+                            paystackCurrentPeriodEnd: date,
+                        },
+                    })];
+            case 7:
+                _a.sent();
+                return [3 /*break*/, 10];
+            case 8: return [4 /*yield*/, prismadb_1.default.paystackSubscription.create({
+                    data: {
+                        userEmail: event_1.data.customer.email,
+                        paystackCustomerId: event_1.data.customer.customer_code,
+                        paystackAmountPaid: amount,
+                        paystackCurrentPeriodEnd: date,
+                    },
+                })];
+            case 9:
+                _a.sent();
+                _a.label = 10;
+            case 10:
+                ;
+                _a.label = 11;
+            case 11:
                 res.json({ status: 200 });
-                return [2 /*return*/];
+                _a.label = 12;
+            case 12: return [2 /*return*/];
         }
     });
 }); };
 exports.paystackWebhook = paystackWebhook;
-//data: {message: "Webhook success", response: response.data }}

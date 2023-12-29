@@ -41,11 +41,11 @@ var errorModel_1 = require("../models/errorModel");
 var dotenv = require("dotenv");
 dotenv.config();
 var authMiddleware = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var Authorization, PUB_KEY, PLATFORMURL, token;
+    var Authorization, PUB_KEY, PLATFORM_URL, token;
     return __generator(this, function (_a) {
         Authorization = req.headers.Authorization || req.headers.authorization;
         PUB_KEY = process.env.JWT_SECRET;
-        PLATFORMURL = 'http://localhost:3000';
+        PLATFORM_URL = process.env.PLATFORM_URL;
         if (Authorization && Authorization.startsWith("Bearer")) {
             token = Authorization.split(' ')[1];
             jwt.verify(token, PUB_KEY, function (err, info) {
@@ -54,7 +54,7 @@ var authMiddleware = function (req, res, next) { return __awaiter(void 0, void 0
                     return next(new errorModel_1.default("Unauthorized. Invalid Token.", 403));
                 }
                 req.user = info;
-                if (req.user.azp !== PLATFORMURL) {
+                if (req.user.azp !== PLATFORM_URL) {
                     console.error("JWT Verification Error: TokenOriginUnknown: jwt is from an unauthorized domain");
                     return next(new errorModel_1.default("Unauthorized.", 403));
                 }

@@ -8,12 +8,15 @@ import { uploadImage } from './controllers/uploadController';
 import { handleDeleteId } from './controllers/deleteIdController';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
+const PLATFORM_URL = process.env.PLATFORM_URL as string;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(cors({ credentials: true, origin: PLATFORM_URL }));
 
 app.use('/api/fetchimages', authMiddleware, handleImageGen);
 app.use('/api/uploadimage', uploadImage);

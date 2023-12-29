@@ -21,7 +21,7 @@ interface NextFunction {
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const Authorization = req.headers.Authorization || req.headers.authorization;
     const PUB_KEY = process.env.JWT_SECRET;
-    const PLATFORMURL = 'http://localhost:3000';
+    const PLATFORM_URL = process.env.PLATFORM_URL;
 
     if (Authorization && Authorization.startsWith("Bearer")) {
         const token = Authorization.split(' ')[1];
@@ -33,7 +33,7 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 
             req.user = info as jwt.JwtPayload;
 
-            if (req.user.azp !== PLATFORMURL) {
+            if (req.user.azp !== PLATFORM_URL) {
                 console.error("JWT Verification Error: TokenOriginUnknown: jwt is from an unauthorized domain");
                 return next(new HttpError("Unauthorized.", 403));
             }

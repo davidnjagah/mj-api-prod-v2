@@ -41,8 +41,6 @@ interface IncomingRequest {
   ) => {
 
     const clientIFS = createIFSClient();
-
-    console.log(req);
   
     const { url } = req.body;
 

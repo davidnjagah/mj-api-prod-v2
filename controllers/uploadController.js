@@ -78,7 +78,6 @@ var uploadImage = function (req, res, next) { return __awaiter(void 0, void 0, v
         switch (_a.label) {
             case 0:
                 clientIFS = createIFSClient();
-                console.log(req);
                 url = req.body.url;
                 if (!url) {
                     console.error("Url Void Error: There's no url in the request");

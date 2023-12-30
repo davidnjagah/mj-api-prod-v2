@@ -54,10 +54,7 @@ var authMiddleware = function (req, res, next) { return __awaiter(void 0, void 0
                     return next(new errorModel_1.default("Unauthorized. Invalid Token.", 403));
                 }
                 req.user = info;
-                if (req.user.azp !== PLATFORM_URL) {
-                    console.error("JWT Verification Error: TokenOriginUnknown: jwt is from an unauthorized domain");
-                    return next(new errorModel_1.default("Unauthorized.", 403));
-                }
+                console.log(req.user);
                 console.log("Decoded JWT:", req.user);
                 next();
             });

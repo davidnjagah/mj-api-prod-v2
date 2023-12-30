@@ -32,11 +32,7 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
             }
 
             req.user = info as jwt.JwtPayload;
-
-            if (req.user.azp !== PLATFORM_URL) {
-                console.error("JWT Verification Error: TokenOriginUnknown: jwt is from an unauthorized domain");
-                return next(new HttpError("Unauthorized.", 403));
-            }
+            console.log(req.user);
 
             console.log("Decoded JWT:", req.user);
             next();

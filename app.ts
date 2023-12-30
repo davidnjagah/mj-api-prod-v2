@@ -2,7 +2,6 @@ import * as express from 'express';
 import * as cors from 'cors';
 import authMiddleware from './middleware/authMiddleware';
 import { handleImageGen } from './controllers/processImageController';
-import { paystackWebhook } from './controllers/paystack-webhook';
 import { check } from './controllers/check';
 import { uploadImage } from './controllers/uploadController';
 import { handleDeleteId } from './controllers/deleteIdController';
@@ -19,9 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ credentials: true, origin: PLATFORM_URL }));
 
 app.use('/api/fetchimages', authMiddleware, handleImageGen);
-app.use('/api/uploadimage', uploadImage);
-app.use('/api/deleteid', handleDeleteId);
-app.use('/api/webhook', paystackWebhook);
+app.use('/api/uploadimage', authMiddleware, uploadImage);
+app.use('/api/deleteid', authMiddleware, handleDeleteId);
 app.use('/api/checkroute', check)
 
 app.use(notFound);

@@ -5,11 +5,8 @@ import { createHmac } from 'crypto';
 // POST : api/webhook
 // PROTECTED //Whitelisting.
 import * as dotenv from 'dotenv';
-dotenv.config();
 import prismadb from '../lib/prismadb';
-
-
-
+dotenv.config();
 
 // Function to add one month
 function addOneMonth(date) {
@@ -32,12 +29,12 @@ export const paystackWebhook = async (
     res: Response,
     next: NextFunction
     ) => {
-    const PLATFORM_URL = process.env.PLATFORM_URL as string;
-    const secret = process.env.PAYSTACK_SECRET_KEY as string;
+    const secret = process.env.PAYSTACK_SECRET_KEY || 'sk_test_6bf6a79ade9c61f593f596397e9a51ff218d7588';
 
     const hash = createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
     if (hash == req.headers['x-paystack-signature']) {
     // Retrieve the request's body
+
     const event = req.body;
     console.log("This is the req.body", event);
 
@@ -80,30 +77,6 @@ export const paystackWebhook = async (
                 });
             };
         };
-
-    if (event.event === "subscription.create") {
-        if (paystackSubscription && paystackSubscription.paystackCustomerId) {
-            await prismadb.paystackSubscription.update({
-                where: {
-                    userEmail: event.data.customer.email,
-                },
-                data: {
-                    paystackAmountPaid: amount,
-                    paystackCurrentPeriodEnd: date,
-                },
-            });
-        }
-        else {
-            await prismadb.paystackSubscription.create({
-                data: {
-                    userEmail: event.data.customer.email,
-                    paystackCustomerId: event.data.customer.customer_code as string,
-                    paystackAmountPaid: amount,
-                    paystackCurrentPeriodEnd: date,
-                },
-            });
-        };
-    }
         
     res.json({status: 200});
     }

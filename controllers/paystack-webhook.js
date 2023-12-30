@@ -42,8 +42,8 @@ var crypto_1 = require("crypto");
 // POST : api/webhook
 // PROTECTED //Whitelisting.
 var dotenv = require("dotenv");
-dotenv.config();
 var prismadb_1 = require("../lib/prismadb");
+dotenv.config();
 // Function to add one month
 function addOneMonth(date) {
     // Get the current day (of the month)
@@ -57,14 +57,13 @@ function addOneMonth(date) {
     }
 }
 var paystackWebhook = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var PLATFORM_URL, secret, hash, event_1, date, amount, paystackSubscription;
+    var secret, hash, event_1, date, amount, paystackSubscription;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                PLATFORM_URL = process.env.PLATFORM_URL;
-                secret = process.env.PAYSTACK_SECRET_KEY;
+                secret = process.env.PAYSTACK_SECRET_KEY || 'sk_test_6bf6a79ade9c61f593f596397e9a51ff218d7588';
                 hash = (0, crypto_1.createHmac)('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
-                if (!(hash == req.headers['x-paystack-signature'])) return [3 /*break*/, 12];
+                if (!(hash == req.headers['x-paystack-signature'])) return [3 /*break*/, 7];
                 event_1 = req.body;
                 console.log("This is the req.body", event_1);
                 date = new Date(event_1.data.paid_at);
@@ -109,38 +108,9 @@ var paystackWebhook = function (req, res, next) { return __awaiter(void 0, void 
                 _a.label = 6;
             case 6:
                 ;
-                if (!(event_1.event === "subscription.create")) return [3 /*break*/, 11];
-                if (!(paystackSubscription && paystackSubscription.paystackCustomerId)) return [3 /*break*/, 8];
-                return [4 /*yield*/, prismadb_1.default.paystackSubscription.update({
-                        where: {
-                            userEmail: event_1.data.customer.email,
-                        },
-                        data: {
-                            paystackAmountPaid: amount,
-                            paystackCurrentPeriodEnd: date,
-                        },
-                    })];
-            case 7:
-                _a.sent();
-                return [3 /*break*/, 10];
-            case 8: return [4 /*yield*/, prismadb_1.default.paystackSubscription.create({
-                    data: {
-                        userEmail: event_1.data.customer.email,
-                        paystackCustomerId: event_1.data.customer.customer_code,
-                        paystackAmountPaid: amount,
-                        paystackCurrentPeriodEnd: date,
-                    },
-                })];
-            case 9:
-                _a.sent();
-                _a.label = 10;
-            case 10:
-                ;
-                _a.label = 11;
-            case 11:
                 res.json({ status: 200 });
-                _a.label = 12;
-            case 12: return [2 /*return*/];
+                _a.label = 7;
+            case 7: return [2 /*return*/];
         }
     });
 }); };

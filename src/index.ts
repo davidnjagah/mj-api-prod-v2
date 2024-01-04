@@ -9,3 +9,4 @@ export * from "./banned.words";
 export * from "./discord.ifsws";
 export * from "./IFS";
 export * from "./discord.ifsmessage";
+export * from "./replicateService";

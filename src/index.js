@@ -25,3 +25,4 @@ __exportStar(require("./banned.words"), exports);
 __exportStar(require("./discord.ifsws"), exports);
 __exportStar(require("./IFS"), exports);
 __exportStar(require("./discord.ifsmessage"), exports);
+__exportStar(require("./replicateService"), exports);

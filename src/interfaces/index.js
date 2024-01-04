@@ -18,3 +18,4 @@ __exportStar(require("./message"), exports);
 __exportStar(require("./config"), exports);
 __exportStar(require("./upload"), exports);
 __exportStar(require("./modal"), exports);
+__exportStar(require("./replicate"), exports);

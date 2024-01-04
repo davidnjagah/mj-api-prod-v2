@@ -9,6 +9,7 @@ var uploadController_1 = require("./controllers/uploadController");
 var deleteIdController_1 = require("./controllers/deleteIdController");
 var errorMiddleware_1 = require("./middleware/errorMiddleware");
 var dotenv = require("dotenv");
+var replicateController_1 = require("./controllers/replicateController");
 dotenv.config();
 var app = express();
 var PLATFORM_URL = process.env.PLATFORM_URL;
@@ -19,6 +20,7 @@ app.use('/api/fetchimages', authMiddleware_1.default, processImageController_1.h
 app.use('/api/uploadimage', authMiddleware_1.default, uploadController_1.uploadImage);
 app.use('/api/deleteid', authMiddleware_1.default, deleteIdController_1.handleDeleteId);
 app.use('/api/checkroute', check_1.check);
+app.use('/api/replicate', authMiddleware_1.default, replicateController_1.replicateResend);
 app.use(errorMiddleware_1.notFound);
 app.use(errorMiddleware_1.errorHandler);
 app.listen(5000, function () { return console.log("Server running on port 5000"); });

@@ -46,6 +46,10 @@ export interface MJConfigParam {
   WebSocket?: WebSocketCl; //isomorphic-ws Or proxy
 }
 
+export interface ReplicateConfigParam {
+  replicatetoken: string;
+}
+
 export const DefaultMJConfig: MJConfig = {
   BotId: MJBot,
   ChannelId: "1077800642086703114",

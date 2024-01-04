@@ -67,6 +67,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "~1.9.1",
     "pug": "2.0.0-beta11",
+    "replicate": "^0.25.2",
+    "resend": "^2.1.0",
     "semiver": "^1.1.0",
     "snowyflake": "^2.0.0",
     "tslib": "^2.5.0",

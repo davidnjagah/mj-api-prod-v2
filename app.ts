@@ -8,6 +8,8 @@ import { handleDeleteId } from './controllers/deleteIdController';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware';
 import * as dotenv from 'dotenv';
+import { paystackWebhook } from './controllers/webhook';
+import { replicateResend } from './controllers/replicateController';
 dotenv.config();
 
 const app = express();
@@ -20,7 +22,8 @@ app.use(cors({ credentials: true, origin: PLATFORM_URL }));
 app.use('/api/fetchimages', authMiddleware, handleImageGen);
 app.use('/api/uploadimage', authMiddleware, uploadImage);
 app.use('/api/deleteid', authMiddleware, handleDeleteId);
-app.use('/api/checkroute', check)
+app.use('/api/checkroute', check);
+app.use('/api/replicate', authMiddleware, replicateResend);
 
 app.use(notFound);
 app.use(errorHandler);

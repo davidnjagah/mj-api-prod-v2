@@ -16,6 +16,7 @@ let generation = "";
 let upload = "";
 let prompt = "";
 let prompturi = "";
+let useremail = "";
 
 const prismadb = new PrismaClient()
 
@@ -45,6 +46,7 @@ export const replicateResend = async (
         prompt = template.prompt;
         prompturi = template.uri;
         sendingEmail = email;
+        useremail = useremail;
 
         userID = userId
         console.log("imageurl:", imageUrl);
@@ -128,12 +130,12 @@ export const replicateResend = async (
 
     const userApiLimit = await prismadb.userApiLimit.findUnique({
       where: {
-          userId: userID
+          userEmail: useremail
       }
     });
     if (userApiLimit) {
       await prismadb.userApiLimit.update({
-          where: { userId: userID },
+          where: { userEmail: useremail },
           data: { count: userApiLimit.count - 1 },
       });
     }

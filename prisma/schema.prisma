@@ -10,12 +10,11 @@ datasource db {
 
 model UserApiLimit {
   id           String   @id @default(cuid())
-  userId       String   @unique
   userEmail    String   @unique
   count        Int      @default(0)
   createdAt    DateTime @default(now())
   updateAt     DateTime @updatedAt
-  maxUserCount Int      @default(1)
+  userMaxCount Int      @default(1)
 }
 
 model UserSubscription {
@@ -28,12 +27,13 @@ model UserSubscription {
 }
 
 model paystackSubscription {
-  id                       String    @id @default(cuid())
-  paystackCustomerId       String?   @unique @map("customer_code")
-  paystackAmountPaid       String?   @map("amount")
-  paystackCurrentPeriodEnd DateTime? @map("next_payment_date")
+  id                       String   @id @default(cuid())
+  paystackCustomerId       String   @unique @map("customer_code")
+  paystackAmountPaid       String   @map("amount")
   plan_code                String?
-  userEmail                String    @unique
+  userEmail                String   @unique
+  paystackCurrentPeriodEnd DateTime
+  paystackDatePaid         DateTime
 }
 
 model Generations {

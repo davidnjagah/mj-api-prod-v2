@@ -8,7 +8,6 @@ import { handleDeleteId } from './controllers/deleteIdController';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware';
 import * as dotenv from 'dotenv';
-import { paystackWebhook } from './controllers/webhook';
 import { replicateResend } from './controllers/replicateController';
 dotenv.config();
 

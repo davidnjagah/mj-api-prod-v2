@@ -52,6 +52,7 @@ var generation = "";
 var upload = "";
 var prompt = "";
 var prompturi = "";
+var useremail = "";
 var prismadb = new client_1.PrismaClient();
 var replicateResend = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var resend, _a, template, imageUrl, email, userId, userEmail, output, _b, data, error, error_1, userApiLimit;
@@ -73,6 +74,7 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
                 prompt = template.prompt;
                 prompturi = template.uri;
                 sendingEmail = email;
+                useremail = useremail;
                 userID = userId;
                 console.log("imageurl:", imageUrl);
                 console.log("template:", template);
@@ -117,7 +119,7 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
             case 1:
                 _c.sent();
                 return [4 /*yield*/, resend.emails.send({
-                        from: "Genius Ai <onboarding@resend.dev>",
+                        from: "Genius Ai <genius@ai.lovemylifestyle.co>",
                         to: ["".concat(email)],
                         subject: "Your Headshot Generation",
                         html: "<strong> Here is your headshot generation image ".concat(output, ".</strong><p>Thank you for using Genius Ai.</p>"),
@@ -125,6 +127,7 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
             case 2:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 if (error) {
+                    console.log("[RESEND_ERROR]", error);
                     return [2 /*return*/, res.status(400).json({ error: error })];
                 }
                 console.log("This is the resend data", data);
@@ -147,14 +150,14 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
                 _c.label = 5;
             case 5: return [4 /*yield*/, prismadb.userApiLimit.findUnique({
                     where: {
-                        userId: userID
+                        userEmail: useremail
                     }
                 })];
             case 6:
                 userApiLimit = _c.sent();
                 if (!userApiLimit) return [3 /*break*/, 8];
                 return [4 /*yield*/, prismadb.userApiLimit.update({
-                        where: { userId: userID },
+                        where: { userEmail: useremail },
                         data: { count: userApiLimit.count - 1 },
                     })];
             case 7:

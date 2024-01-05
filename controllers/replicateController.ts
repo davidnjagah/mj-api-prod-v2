@@ -98,13 +98,14 @@ export const replicateResend = async (
           }); 
 
         const { data, error } = await resend.emails.send({
-            from: "Genius Ai <onboarding@resend.dev>",
+            from: "Genius Ai <genius@ai.lovemylifestyle.co>",
             to: [`${email}`],
             subject: "Your Headshot Generation",
             html: `<strong> Here is your headshot generation image ${output}.</strong><p>Thank you for using Genius Ai.</p>`,
           });
           
           if (error) {
+            console.log("[RESEND_ERROR]", error);
             return res.status(400).json({ error });
           } 
 

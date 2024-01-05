@@ -55,11 +55,11 @@ var prompturi = "";
 var useremail = "";
 var prismadb = new client_1.PrismaClient();
 var replicateResend = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var resend, _a, template, imageUrl, email, userId, userEmail, output, _b, data, error, error_1, userApiLimit;
+    var resend, _a, template, imageUrl, email, userId, userEmail, output, outputdb, _b, data, error, error_1, err, userApiLimit;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 3, , 9]);
+                _c.trys.push([0, 6, , 11]);
                 if (!replicate) {
                     replicate = new Replicate({
                         auth: process.env.REPLICATE_API_TOKEN_2
@@ -74,38 +74,31 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
                 prompt = template.prompt;
                 prompturi = template.uri;
                 sendingEmail = email;
-                useremail = useremail;
+                useremail = userEmail;
                 userID = userId;
                 console.log("imageurl:", imageUrl);
                 console.log("template:", template);
                 console.log("email:", email);
                 res.status(200);
-                output = "testing";
-                // const output = await replicate.run(
-                //   "catio-apps/photoaistudio-generate:1ed8b5810e1e4291699e6a43ef9c641196d660eae7cba314d83519a898a409da",
-                //   {
-                //         input: {
-                //           seed: 1,
-                //           steps: 8,
-                //           width: 1080,
-                //           prompt: template.prompt,
-                //           n_prompt: "ugly, bad hair, baggy, blurry",
-                //           face_image: imageUrl,
-                //           pose_image: template.uri,
-                //           num_samples: 1,
-                //           face_resemblance: 0.5,
-                //           pose_resemblance: 0.8,
-                //           face_expanding_bbox: 0.5
-                //         }
-                //       }
-                //   );
-                //   if(!output){
-                //     return res.status(400);
-                //   }
+                return [4 /*yield*/, replicate.run("catio-apps/photoaistudio-generate:1ed8b5810e1e4291699e6a43ef9c641196d660eae7cba314d83519a898a409da", {
+                        input: {
+                            seed: 1,
+                            steps: 8,
+                            width: 1080,
+                            prompt: template.prompt,
+                            n_prompt: "ugly, bad hair, baggy, blurry",
+                            face_image: imageUrl,
+                            pose_image: template.uri,
+                            num_samples: 1,
+                            face_resemblance: 0.5,
+                            pose_resemblance: 0.8,
+                            face_expanding_bbox: 0.5
+                        }
+                    })];
+            case 1:
+                output = _c.sent();
                 //add functionality to show generations that aborted through generation table
-                if (output) {
-                    generation = output;
-                }
+                generation = output;
                 return [4 /*yield*/, prismadb.generations.create({
                         data: {
                             userId: userId,
@@ -116,57 +109,66 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
                             upload: imageUrl
                         }
                     })];
-            case 1:
-                _c.sent();
+            case 2:
+                outputdb = _c.sent();
                 return [4 /*yield*/, resend.emails.send({
                         from: "Genius Ai <genius@ai.lovemylifestyle.co>",
                         to: ["".concat(email)],
                         subject: "Your Headshot Generation",
                         html: "<strong> Here is your headshot generation image ".concat(output, ".</strong><p>Thank you for using Genius Ai.</p>"),
                     })];
-            case 2:
-                _b = _c.sent(), data = _b.data, error = _b.error;
-                if (error) {
-                    console.log("[RESEND_ERROR]", error);
-                    return [2 /*return*/, res.status(400).json({ error: error })];
-                }
-                console.log("This is the resend data", data);
-                return [2 /*return*/, res.status(200).json("Email sent successfully")];
             case 3:
-                error_1 = _c.sent();
-                if (!!generation) return [3 /*break*/, 5];
-                return [4 /*yield*/, prismadb.generations.create({
+                _b = _c.sent(), data = _b.data, error = _b.error;
+                if (!error) return [3 /*break*/, 5];
+                return [4 /*yield*/, prismadb.generations.update({
+                        where: {
+                            id: outputdb.id
+                        },
                         data: {
-                            userId: userID,
-                            email: sendingEmail,
-                            output: generation,
-                            prompt: prompt,
-                            prompturi: prompturi,
-                            upload: upload
+                            resenderror: error.message
                         }
                     })];
             case 4:
                 _c.sent();
-                _c.label = 5;
-            case 5: return [4 /*yield*/, prismadb.userApiLimit.findUnique({
-                    where: {
-                        userEmail: useremail
-                    }
-                })];
+                console.log("[RESEND_ERROR]", error);
+                return [2 /*return*/, res.status(400).json({ error: error })];
+            case 5:
+                console.log("This is the resend data", data);
+                return [2 /*return*/, res.status(200).json("Email sent successfully")];
             case 6:
+                error_1 = _c.sent();
+                err = "Generation failed";
+                return [4 /*yield*/, prismadb.generations.create({
+                        data: {
+                            userId: userID,
+                            email: sendingEmail,
+                            prompt: prompt,
+                            prompturi: prompturi,
+                            upload: upload,
+                            replicateerror: err
+                        }
+                    })];
+            case 7:
+                _c.sent();
+                return [4 /*yield*/, prismadb.userApiLimit.findUnique({
+                        where: {
+                            userEmail: useremail
+                        }
+                    })];
+            case 8:
                 userApiLimit = _c.sent();
-                if (!userApiLimit) return [3 /*break*/, 8];
+                if (!userApiLimit) return [3 /*break*/, 10];
                 return [4 /*yield*/, prismadb.userApiLimit.update({
                         where: { userEmail: useremail },
                         data: { count: userApiLimit.count - 1 },
                     })];
-            case 7:
+            case 9:
                 _c.sent();
-                _c.label = 8;
-            case 8:
+                _c.label = 10;
+            case 10:
                 console.log("[REPLICATE_SERVER_ERROR]", error_1);
                 return [2 /*return*/, next(new errorModel_1.default("Something went wrong.", 500))];
-            case 9: return [2 /*return*/];
+            case 11: return [2 /*return*/];
         }
     });
 }); };

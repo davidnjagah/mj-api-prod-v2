@@ -46,7 +46,7 @@ export const replicateResend = async (
         prompt = template.prompt;
         prompturi = template.uri;
         sendingEmail = email;
-        useremail = useremail;
+        useremail = userEmail;
 
         userID = userId
         console.log("imageurl:", imageUrl);
@@ -54,39 +54,31 @@ export const replicateResend = async (
         console.log("email:", email);
 
         res.status(200);
-
-        const output = "testing"
         
-        // const output = await replicate.run(
-        //   "catio-apps/photoaistudio-generate:1ed8b5810e1e4291699e6a43ef9c641196d660eae7cba314d83519a898a409da",
-        //   {
-        //         input: {
-        //           seed: 1,
-        //           steps: 8,
-        //           width: 1080,
-        //           prompt: template.prompt,
-        //           n_prompt: "ugly, bad hair, baggy, blurry",
-        //           face_image: imageUrl,
-        //           pose_image: template.uri,
-        //           num_samples: 1,
-        //           face_resemblance: 0.5,
-        //           pose_resemblance: 0.8,
-        //           face_expanding_bbox: 0.5
-        //         }
-        //       }
-        //   );
-
-        //   if(!output){
-        //     return res.status(400);
-        //   }
+        const output = await replicate.run(
+          "catio-apps/photoaistudio-generate:1ed8b5810e1e4291699e6a43ef9c641196d660eae7cba314d83519a898a409da",
+          {
+                input: {
+                  seed: 1,
+                  steps: 8,
+                  width: 1080,
+                  prompt: template.prompt,
+                  n_prompt: "ugly, bad hair, baggy, blurry",
+                  face_image: imageUrl,
+                  pose_image: template.uri,
+                  num_samples: 1,
+                  face_resemblance: 0.5,
+                  pose_resemblance: 0.8,
+                  face_expanding_bbox: 0.5
+                }
+              }
+          );
 
         //add functionality to show generations that aborted through generation table
 
-        if(output){
-          generation = output;
-        }
+        generation = output;
 
-        await prismadb.generations.create({
+        const outputdb= await prismadb.generations.create({
             data: {
                 userId,
                 email,
@@ -105,6 +97,14 @@ export const replicateResend = async (
           });
           
           if (error) {
+            await prismadb.generations.update({
+              where: {
+                id: outputdb.id
+              },
+              data: {
+                  resenderror: error.message
+              }
+            }); 
             console.log("[RESEND_ERROR]", error);
             return res.status(400).json({ error });
           } 
@@ -116,18 +116,18 @@ export const replicateResend = async (
   } catch (error) {
     //can add logic to generations table to show when a generation failed
     //and will need to retry.
-    if(!generation){
-      await prismadb.generations.create({
+    const err = "Generation failed";
+
+    await prismadb.generations.create({
         data: {
             userId: userID,
             email: sendingEmail,
-            output: generation,
             prompt,
             prompturi,
-            upload
+            upload,
+            replicateerror: err
         }
-      }); 
-    }
+    }); 
 
     const userApiLimit = await prismadb.userApiLimit.findUnique({
       where: {

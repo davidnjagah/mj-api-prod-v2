@@ -37,13 +37,15 @@ model paystackSubscription {
 }
 
 model Generations {
-  id        String   @id @default(cuid())
-  userId    String
-  email     String?
-  output    String?
-  prompt    String?
-  prompturi String?
-  upload    String
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  id             String   @id @default(cuid())
+  userId         String
+  email          String?
+  output         String?
+  prompt         String?
+  prompturi      String?
+  upload         String
+  createdAt      DateTime @default(now())
+  updateAt       DateTime @updatedAt
+  replicateerror String?
+  resenderror    String?
 }

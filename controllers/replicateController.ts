@@ -1,4 +1,5 @@
 const Replicate: any = require('replicate');
+import { utapi } from '../server/uploadthing';
 import { Request, Response, NextFunction } from 'express';
 import HttpError from "../models/errorModel";
 import { Resend } from "resend";
@@ -17,6 +18,7 @@ let upload = "";
 let prompt = "";
 let prompturi = "";
 let useremail = "";
+
 
 const prismadb = new PrismaClient()
 
@@ -54,7 +56,7 @@ export const replicateResend = async (
         console.log("email:", email);
 
         res.status(200);
-        
+
         const output = await replicate.run(
           "catio-apps/photoaistudio-generate:1ed8b5810e1e4291699e6a43ef9c641196d660eae7cba314d83519a898a409da",
           {
@@ -72,17 +74,21 @@ export const replicateResend = async (
                   face_expanding_bbox: 0.5
                 }
               }
-          );
+        );
 
-        //add functionality to show generations that aborted through generation table
+        const uploadedFile : any = await utapi.uploadFilesFromUrl(output);
 
-        generation = output;
+        console.log("uploadedFile:",uploadedFile);
+
+        if (!uploadedFile.data) {
+          return new Error("Uploaded is unavailable.");
+        }
 
         const outputdb= await prismadb.generations.create({
             data: {
                 userId,
                 email,
-                output: `${output}`,
+                output: uploadedFile.data.url,
                 prompt: template.prompt,
                 prompturi: template.uri,
                 upload: imageUrl
@@ -93,7 +99,7 @@ export const replicateResend = async (
             from: "Genius Ai <genius@ai.lovemylifestyle.co>",
             to: [`${email}`],
             subject: "Your Headshot Generation",
-            html: `<strong> Here is your headshot generation image ${output}.</strong><p>Thank you for using Genius Ai.</p>`,
+            html: `<strong> Here is your headshot generation image ${uploadedFile.data.url}.</strong><p>Thank you for using Genius Ai.</p>`,
           });
           
           if (error) {
@@ -114,8 +120,6 @@ export const replicateResend = async (
         return res.status(200).json("Email sent successfully");
 
   } catch (error) {
-    //can add logic to generations table to show when a generation failed
-    //and will need to retry.
     const err = "Generation failed";
 
     await prismadb.generations.create({

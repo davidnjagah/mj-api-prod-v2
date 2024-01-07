@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.replicateResend = void 0;
 var Replicate = require('replicate');
+var uploadthing_1 = require("../server/uploadthing");
 var errorModel_1 = require("../models/errorModel");
 var resend_1 = require("resend");
 var client_1 = require("@prisma/client");
@@ -55,11 +56,11 @@ var prompturi = "";
 var useremail = "";
 var prismadb = new client_1.PrismaClient();
 var replicateResend = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var resend, _a, template, imageUrl, email, userId, userEmail, output, outputdb, _b, data, error, error_1, err, userApiLimit;
+    var resend, _a, template, imageUrl, email, userId, userEmail, output, uploadedFile, outputdb, _b, data, error, error_1, err, userApiLimit;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 6, , 11]);
+                _c.trys.push([0, 7, , 12]);
                 if (!replicate) {
                     replicate = new Replicate({
                         auth: process.env.REPLICATE_API_TOKEN_2
@@ -97,29 +98,34 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
                     })];
             case 1:
                 output = _c.sent();
-                //add functionality to show generations that aborted through generation table
-                generation = output;
+                return [4 /*yield*/, uploadthing_1.utapi.uploadFilesFromUrl(output)];
+            case 2:
+                uploadedFile = _c.sent();
+                console.log("uploadedFile:", uploadedFile);
+                if (!uploadedFile.data) {
+                    return [2 /*return*/, new Error("Uploaded is unavailable.")];
+                }
                 return [4 /*yield*/, prismadb.generations.create({
                         data: {
                             userId: userId,
                             email: email,
-                            output: "".concat(output),
+                            output: uploadedFile.data.url,
                             prompt: template.prompt,
                             prompturi: template.uri,
                             upload: imageUrl
                         }
                     })];
-            case 2:
+            case 3:
                 outputdb = _c.sent();
                 return [4 /*yield*/, resend.emails.send({
                         from: "Genius Ai <genius@ai.lovemylifestyle.co>",
                         to: ["".concat(email)],
                         subject: "Your Headshot Generation",
-                        html: "<strong> Here is your headshot generation image ".concat(output, ".</strong><p>Thank you for using Genius Ai.</p>"),
+                        html: "<strong> Here is your headshot generation image ".concat(uploadedFile.data.url, ".</strong><p>Thank you for using Genius Ai.</p>"),
                     })];
-            case 3:
+            case 4:
                 _b = _c.sent(), data = _b.data, error = _b.error;
-                if (!error) return [3 /*break*/, 5];
+                if (!error) return [3 /*break*/, 6];
                 return [4 /*yield*/, prismadb.generations.update({
                         where: {
                             id: outputdb.id
@@ -128,14 +134,14 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
                             resenderror: error.message
                         }
                     })];
-            case 4:
+            case 5:
                 _c.sent();
                 console.log("[RESEND_ERROR]", error);
                 return [2 /*return*/, res.status(400).json({ error: error })];
-            case 5:
+            case 6:
                 console.log("This is the resend data", data);
                 return [2 /*return*/, res.status(200).json("Email sent successfully")];
-            case 6:
+            case 7:
                 error_1 = _c.sent();
                 err = "Generation failed";
                 return [4 /*yield*/, prismadb.generations.create({
@@ -148,27 +154,27 @@ var replicateResend = function (req, res, next) { return __awaiter(void 0, void 
                             replicateerror: err
                         }
                     })];
-            case 7:
+            case 8:
                 _c.sent();
                 return [4 /*yield*/, prismadb.userApiLimit.findUnique({
                         where: {
                             userEmail: useremail
                         }
                     })];
-            case 8:
+            case 9:
                 userApiLimit = _c.sent();
-                if (!userApiLimit) return [3 /*break*/, 10];
+                if (!userApiLimit) return [3 /*break*/, 11];
                 return [4 /*yield*/, prismadb.userApiLimit.update({
                         where: { userEmail: useremail },
                         data: { count: userApiLimit.count - 1 },
                     })];
-            case 9:
-                _c.sent();
-                _c.label = 10;
             case 10:
+                _c.sent();
+                _c.label = 11;
+            case 11:
                 console.log("[REPLICATE_SERVER_ERROR]", error_1);
                 return [2 /*return*/, next(new errorModel_1.default("Something went wrong.", 500))];
-            case 11: return [2 /*return*/];
+            case 12: return [2 /*return*/];
         }
     });
 }); };

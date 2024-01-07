@@ -72,6 +72,7 @@
     "semiver": "^1.1.0",
     "snowyflake": "^2.0.0",
     "tslib": "^2.5.0",
+    "uploadthing": "^6.1.1",
     "ws": "^8.13.0"
   }
 }

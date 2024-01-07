@@ -76,19 +76,33 @@ export const replicateResend = async (
               }
         );
 
-        const uploadedFile : any = await utapi.uploadFilesFromUrl(output);
+        const uploadedFile = await utapi.uploadFilesFromUrl(output);
 
-        console.log("uploadedFile:",uploadedFile);
+        let uploaded = ""
 
-        if (!uploadedFile.data) {
-          return new Error("Uploaded is unavailable.");
+        console.log("uploadedFile:", uploadedFile);
+
+        const myObject = uploadedFile;
+
+        if (Array.isArray(myObject)) {
+          // It's an array
+          if(myObject[0].data){
+          uploaded = myObject[0].data?.url; // You might want to handle the array case differently
         }
+        } else {
+          // It's a single object
+          if(myObject.data){
+          uploaded = myObject.data.url;
+          }
+        }
+        
+        console.log("uploaded:",uploaded);
 
         const outputdb= await prismadb.generations.create({
             data: {
                 userId,
                 email,
-                output: uploadedFile.data.url,
+                output: uploaded,
                 prompt: template.prompt,
                 prompturi: template.uri,
                 upload: imageUrl
@@ -99,7 +113,7 @@ export const replicateResend = async (
             from: "Genius Ai <genius@ai.lovemylifestyle.co>",
             to: [`${email}`],
             subject: "Your Headshot Generation",
-            html: `<strong> Here is your headshot generation image ${uploadedFile.data.url}.</strong><p>Thank you for using Genius Ai.</p>`,
+            html: `<strong> Here is your headshot generation image ${uploaded}.</strong><p>Thank you for using Genius Ai.</p>`,
           });
           
           if (error) {
